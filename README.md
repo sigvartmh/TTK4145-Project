@@ -10,7 +10,9 @@ A project for N-elevator connected in a distributed real-time environment using 
 Discuss langauge, setup a overview of the system
 
 Current plans:
+
 Langauge: Go programming language
+
 Communication protocol: UDP/TCP ? Fixed/null terminated
 
 
