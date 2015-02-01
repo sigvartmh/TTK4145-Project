@@ -18,8 +18,8 @@ Communication protocol: UDP/TCP ? Fixed/null terminated
 
 ##Work flow
   *  Create a new branch for each new feature
-  *  Document feature in commit and [Wiki](Home)
-  *  Report issues in the issue tracker
+  *  Document feature in commit and [Wiki](https://github.com/sigvartmh/TTK4145-Project/wiki)
+  *  Report issues in the [issue tracker](https://github.com/sigvartmh/TTK4145-Project/issues)
     *  When solving issues in the issue tracker remember to document your commit and maybe update the wiki page for the feature.
   * When a feature is complete create a pull request to the develop/master branch
   * 
