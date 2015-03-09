@@ -377,6 +377,7 @@ void handleTimerEvent(string s){
                 currFloor = -1;
                 moveEvent = "arr"~(prevFloor+1).to!string;
                 timerEvent_thread.send(thisTid, moveEvent, travelTimeBetweenFloors);
+                departDir = UP;
                 return;
             case DOWN:
                 if(s[3] == '0'){
@@ -385,6 +386,7 @@ void handleTimerEvent(string s){
                 currFloor = -1;
                 moveEvent = "arr"~(prevFloor-1).to!string;
                 timerEvent_thread.send(thisTid, moveEvent, travelTimeBetweenFloors);
+                departDir = DOWN;
                 return;
             case STOP:
                 return;
