@@ -1,11 +1,15 @@
+#ifdef __linux__
 #include <comedilib.h>
+#else
+#include "comedilib.h"
+#endif
 
 #include "io.h"
 #include "channels.h"
 
 
 static comedi_t     *it_g           = NULL;
-static ElevatorType elevatorType    = ET_comedi;
+static ElevatorType elevatorType    = ET_simulation;
 
 void simulation_elevator_start();
 void simulation_dio_write(int channel, int value);
