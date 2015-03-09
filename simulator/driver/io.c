@@ -1,7 +1,7 @@
 #ifdef __linux__
 #include <comedilib.h>
 #else
-#include "comedilib.h"
+#include "comedi_fake/comedilib.h"
 #endif
 
 #include "io.h"

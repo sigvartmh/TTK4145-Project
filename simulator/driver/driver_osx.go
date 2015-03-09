@@ -1,12 +1,11 @@
 package driver
 
 /*
-#cgo LDFLAGS: simulation_elevator.a libphobos2.a -std=c99 -lm
+#cgo LDFLAGS: simulation_elevator.a libphobos2.a -lpthread -lm
+#cgo CFLAGS: -std=c99
 #include "io.h"
 #include "channels.h"
 #include "elev.h"
-#include "comedi.h"
-#include "comedilib.h"
 */
 import "C"
 
