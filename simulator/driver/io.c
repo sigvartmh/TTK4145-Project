@@ -1,14 +1,13 @@
 #ifdef __linux__
 #include <comedilib.h>
-#else
-#include "comedi_fake/comedilib.h"
 #endif
 
 #include "io.h"
 #include "channels.h"
 
-
+#ifdef __linux__
 static comedi_t     *it_g           = NULL;
+#endif
 static ElevatorType elevatorType    = ET_simulation;
 
 void simulation_elevator_start();
@@ -23,6 +22,7 @@ int io_init(ElevatorType type){
     elevatorType = type;
     
     switch(elevatorType){
+    #ifdef __linux__
     case ET_comedi: {
         int status = 0;
 
@@ -40,6 +40,7 @@ int io_init(ElevatorType type){
 
         return (status == 0);
     }
+    #endif
     
     case ET_simulation:
         simulation_elevator_start();
@@ -54,10 +55,12 @@ int io_init(ElevatorType type){
 
 void io_set_bit(int channel){
     switch(elevatorType){
+
     case ET_comedi:
+        #ifdef __linux__
         comedi_dio_write(it_g, channel >> 8, channel & 0xff, 1);
         break;
-        
+        #endif
     case ET_simulation:
         simulation_dio_write(channel, 1);
         break;
@@ -72,7 +75,9 @@ void io_set_bit(int channel){
 void io_clear_bit(int channel){
     switch(elevatorType){
     case ET_comedi:
+        #ifdef __linux__
         comedi_dio_write(it_g, channel >> 8, channel & 0xff, 0);
+        #endif
         break;
         
     case ET_simulation:
@@ -89,7 +94,9 @@ void io_clear_bit(int channel){
 void io_write_analog(int channel, int value){
     switch(elevatorType){
     case ET_comedi:
+        #ifdef __linux__
         comedi_data_write(it_g, channel >> 8, channel & 0xff, 0, AREF_GROUND, value);
+        #endif
         break;
         
     case ET_simulation:
@@ -107,8 +114,9 @@ int io_read_bit(int channel){
     switch(elevatorType){
     case ET_comedi: {
         unsigned int data = 0;
+        #ifdef __linux__  
         comedi_dio_read(it_g, channel >> 8, channel & 0xff, &data);
-
+        #endif
         return (int)data;
     }
     case ET_simulation:
@@ -126,10 +134,12 @@ int io_read_bit(int channel){
 int io_read_analog(int channel){
     switch(elevatorType){
     case ET_comedi: {
+    #ifdef __linux__   
         lsampl_t data = 0;
         comedi_data_read(it_g, channel >> 8, channel & 0xff, 0, AREF_GROUND, &data);
-
+    
         return (int)data;
+    #endif
     }
         
     case ET_simulation:
