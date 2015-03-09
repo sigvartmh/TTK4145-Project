@@ -11,6 +11,7 @@ import "C"
 
 type elev_button_type_t int
 type elev_motor_direction_t int
+type ElevatorType int
 
 const (
 	BUTTON_CALL_UP elev_button_type_t = iota
@@ -24,8 +25,8 @@ const (
 	DRIN_UP                          = 1
 )
 
-func Init() int {
-	return int(C.elev_init())
+func Init(init ElevatorType) int {
+	return int(C.elev_init(C.ElevatorType(init)))
 }
 
 func SetMotorDir(dirn elev_motor_direction_t) {
