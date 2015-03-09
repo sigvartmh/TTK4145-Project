@@ -8,8 +8,13 @@ import (
 const floorNumbers = 3
 const buttonType = 2
 
+const(
+    ET_comedi = iota
+    ET_simulation
+)
+
 func main() {
-	if driver.Init() == 1 {
+	if driver.Init(ET_simulation) == 1 {
 		fmt.Println("Driver intialized")
 	}
 
