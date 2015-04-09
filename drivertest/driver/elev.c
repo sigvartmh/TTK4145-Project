@@ -33,7 +33,7 @@ int elev_init(void) {
     int i;
 
     // Init hardware
-    if (!io_init(ET_comedi))
+    if (!io_init())
         return 0;
 
     // Zero all floor button lamps

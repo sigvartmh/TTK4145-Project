@@ -1,17 +1,18 @@
 package driver
 
 /*
-#cgo CFLAGS: -std=c99
-#cgo LDFLAGS: "-L/home/kurtkl/go/src/github.com/sigvartmh/TTK4145-project/drivertest" -lpthread -lcomedi -lm
+#cgo CFLAGS: -std=c99 -g -Wall
+#cgo LDFLAGS:  "/usr/lib/libcomedi.a" -lm
 #include "io.h"
 #include "channels.h"
 #include "elev.h"
 */
 import "C"
+import "fmt"
 
 //import "time"
-type elev_button_type_t int
 
+type elev_button_type_t int
 type elev_motor_direction_t int
 
 const (
@@ -36,14 +37,17 @@ const (
 
 func Init() int {
 	initOK := int(C.elev_init())
-	for GetFloorSensor() != 0 {
+
+	fmt.Println(getFloorSensor())
+	for getFloorSensor() != 1 {
 		setMotorDir(DIRN_DOWN)
 		// Fail and report after 10 seconds
+		fmt.Println("kvakk")
 		// time.Sleep(3*time.Second)
 	}
 	setMotorDir(DIRN_STOP)
 
-	go senseElevatorStatus()
+	//	go senseElevatorStatus()
 	return initOK
 }
 
