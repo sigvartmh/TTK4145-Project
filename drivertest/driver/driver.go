@@ -9,8 +9,7 @@ package driver
 */
 import "C"
 import "fmt"
-
-//import "time"
+import "time"
 
 type elev_button_type_t int
 type elev_motor_direction_t int
@@ -37,17 +36,18 @@ const (
 
 func Init() int {
 	initOK := int(C.elev_init())
-
-	fmt.Println(getFloorSensor())
-	for getFloorSensor() != 1 {
+	for getFloorSensor() != 0 {
 		setMotorDir(DIRN_DOWN)
 		// Fail and report after 10 seconds
+	        // For testing: fmt.Println(getFloorSensor())
 		fmt.Println("kvakk")
-		// time.Sleep(3*time.Second)
+		time.Sleep(1*time.Second) // In order to stop nicely on the floor
+
+
 	}
 	setMotorDir(DIRN_STOP)
-
-	//	go senseElevatorStatus()
+	 // Start the go routine that will keep sending status updaates
+	 // go senseElevatorStatus()	
 	return initOK
 }
 
@@ -87,9 +87,8 @@ func setDoorOpenLamp(value int) { // made private
 	C.elev_set_door_open_lamp(C.int(value))
 }
 
-/*
 func GoToFloor(desiredFloor int) {
-    currentFloor  = GetFloorSensor()
+    currentFloor = GetFloorSensor()
     if desiredFloor == currentFloor {
         return
         } else {
@@ -100,7 +99,6 @@ func GoToFloor(desiredFloor int) {
         return
     }
 }
-*/
 
 func updateFloorLights() { // Run as go routine from Init()
 	// currentFloor := GetFloorSensor()

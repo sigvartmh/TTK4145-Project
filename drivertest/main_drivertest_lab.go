@@ -11,7 +11,16 @@ const buttonType = 2
 func main() {
 	if driver.Init() == 1 {
 		fmt.Println("Driver intialized")
+
+	driver.GoToFloor(2)
+
+
+
+
 	}
+
+
+
 
 	/*
 		floor := 0
