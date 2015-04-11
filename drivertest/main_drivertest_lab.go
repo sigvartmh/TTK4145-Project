@@ -12,7 +12,7 @@ func main() {
 	if driver.Init() == 1 {
 		fmt.Println("Driver intialized")
 
-	driver.GoToFloor(2)
+	driver.GoToFloor(0)
 
 
 
@@ -23,6 +23,8 @@ func main() {
 
 
 	/*
+	driver.GoToFloor(0)
+
 		floor := 0
 		driver.SetButtonLamp(1, 1, 0)
 		driver.SetButtonLamp(2, 1, 1)

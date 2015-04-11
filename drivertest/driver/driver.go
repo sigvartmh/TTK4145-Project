@@ -41,14 +41,17 @@ func Init() int {
 		// Fail and report after 10 seconds
 	        // For testing: fmt.Println(getFloorSensor())
 		fmt.Println("kvakk")
-		time.Sleep(1*time.Second) // In order to stop nicely on the floor
-
-
+		time.Sleep(500*time.Millisecond) // In order to stop nicely on the floor
 	}
 	setMotorDir(DIRN_STOP)
-	 // Start the go routine that will keep sending status updaates
-	 // go senseElevatorStatus()	
+        // Start the go routine that will keep sending status updaates
+        // go senseElevatorStatus()	
+        go refreshFloorIndicatorLights()	
 	return initOK
+}
+
+func refreshFloorIndicatorLights() {
+	return
 }
 
 func setMotorDir(dir elev_motor_direction_t) { // made private
@@ -88,22 +91,27 @@ func setDoorOpenLamp(value int) { // made private
 }
 
 func GoToFloor(desiredFloor int) {
-    currentFloor = GetFloorSensor()
-    if desiredFloor == currentFloor {
+    // fmt.Println("Actual floor" + string(getFloorSensor()))
+    // fmt.Println(desiredFloor)
+    if desiredFloor == getFloorSensor() {
         return
-        } else {
-            setMotorDir(desiredFloor - currentFloor)
-            for desiredFloor != currentFloor {
-                // Wait for how long?
-        }
-        return
+    } else if desiredFloor > getFloorSensor(){
+            setMotorDir(DIRN_UP)
+    } else {
+            setMotorDir(DIRN_DOWN)
     }
+    for desiredFloor != getFloorSensor()  {
+         // fmt.Println(getFloorSensor())
+    }
+	setMotorDir(DIRN_STOP)
+        return
 }
+
 
 func updateFloorLights() { // Run as go routine from Init()
 	// currentFloor := GetFloorSensor()
 	// if currentFloor
-	// setFloorIndicator(currentFloor)
+	// setFloorIndicator(getFloor)
 }
 
 /*
