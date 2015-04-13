@@ -1,44 +1,31 @@
 package main
 
 import (
-	"./driver"
+	"./driver/src"
 	"fmt"
 )
 
-const floorNumbers = 3
-const buttonType = 2
-
-const(
-    ET_comedi = iota
-    ET_simulation
-)
-
 func main() {
-	if driver.Init(ET_simulation) == 1 {
-		fmt.Println("Driver intialized")
-	}
+	message := make(chan string)
+	message2 := make(chan string)
+	//msg <- "Test channel"
+	go func(){var str string = "Test"
+		message <- str}()
+	fmt.Println( <-message)
+	driver.Init(message, message2)
+	go func(){var str string = "Test"
+		message <- str}()
 
-	driver.SetMotorDir(0)
-	floor := 0
-	driver.SetButtonLamp(1, 1, 0)
-	driver.SetButtonLamp(2, 1, 1)
 
-	for {
-		if driver.GetButtonSignal(0, 0) == 1 {
-			driver.SetButtonLamp(0, 0, 1)
-			driver.SetButtonLamp(2, 0, 1)
+
+	for{
+		select{
+			case msg := <-message:
+				fmt.Println("Recived on channel:", msg)
+			case msg2 := <-message2:
+				fmt.Println("Recived on channel:", msg2)
+			default:
+				fmt.Println("Nothing recived")
 		}
-		if driver.GetFloorSensor() == 2 {
-			if floor != driver.GetFloorSensor() {
-				fmt.Println("Arrived at floor 2")
-				floor = driver.GetFloorSensor()
-				driver.SetMotorDir(0)
-			}
-			driver.SetMotorDir(1)
-		} else if driver.GetFloorSensor() == 3 {
-			driver.SetMotorDir(-1)
-		}
-
 	}
-
 }
