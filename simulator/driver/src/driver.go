@@ -12,7 +12,7 @@ import (
 // f		 "time"
 		 "os"
 		 "strconv"
-		 "fmt"
+//         "fmt"
 )
 
 var maxFloor ,  _ = strconv.Atoi(os.Getenv("FLOORS"))
@@ -39,11 +39,11 @@ const (
 	ET_SIMULATOR 
 )
 
-func initElev(elevType ElevatorType) int {
+func InitElev(elevType ElevatorType) int {
 	return int(C.elev_init(C.ElevatorType(elevType)))
 }
 
-func Init(internal chan string, external chan string){
+/*func Init(internal chan string, external chan string){
 	//success = init(1)
 	initElev(ET_SIMULATOR)
 	fmt.Println("Maxfloor= ", maxFloor)
@@ -62,7 +62,7 @@ func Init(internal chan string, external chan string){
 	go floorIndicator(internal)
 	go internalButtonPress(internal)
 	go externalButtonPress(external)
-}
+}*/
 
 /*Initializes the elevator */
 /*func initElev(type_t ElevatorType) int {
