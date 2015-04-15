@@ -40,19 +40,60 @@ func Init() int {
 		setMotorDir(DIRN_DOWN)
 		// Fail and report after 10 seconds
 	        // For testing: fmt.Println(getFloorSensor())
-		fmt.Println("kvakk")
+		fmt.Println("Kjører heisen ned til første ... vent litt")
 		time.Sleep(500*time.Millisecond) // In order to stop nicely on the floor
 	}
 	setMotorDir(DIRN_STOP)
-        // Start the go routine that will keep sending status updaates
-        // go senseElevatorStatus()	
-        go refreshFloorIndicatorLights()	
 	return initOK
 }
 
-func refreshFloorIndicatorLights() {
-	return
+func Run() {
+	var currentFloor int
+	for (true) {
+		fmt.Println("polling")
+		if currentFloor != getFloorSensor() {
+			currentFloor = getFloorSensor()
+			fmt.Println( currentFloor ) // replace with update of status array
+			if currentFloor != -1 {setFloorIndicator(currentFloor)}
+		}
+		// replace the lines below with update of status array or something similar put on a channel
+		fmt.Println(getButtonSignal(BUTTON_COMMAND, 0)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_COMMAND, 1)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_COMMAND, 2)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_COMMAND, 3)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_UP, 0)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_UP, 1)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_UP, 2)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_DOWN, 1)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_DOWN, 2)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getButtonSignal(BUTTON_CALL_DOWN, 3)) // Make consts: FLOOR-0 etc.?
+		fmt.Println(getStopSignal())
+		//fmt.Println(int(C.elev_get_stop_signal()))
+		//fmt.Println(C.elev_get_stop_signal())
+	
+	
+		/*
+		if getButtonSignal(BUTTON_COMMAND, 0) != 0 {
+			floorCommand <- 0
+		}
+	
+		if getButtonSignal(BUTTON_COMMAND, 1) != 0 {
+			floorCommand <- 1
+		}
+	
+		if getButtonSignal(BUTTON_COMMAND, 2) != 0 {
+			GoToFloor(2)
+		}
+	
+		if getButtonSignal(BUTTON_COMMAND, 3) != 0 {
+			GoToFloor(3)
+		}
+		*/
+	
+ 		time.Sleep(100*time.Millisecond)
+	}
 }
+
 
 func setMotorDir(dir elev_motor_direction_t) { // made private
 	C.elev_set_motor_direction(C.elev_motor_direction_t(dir))
@@ -78,11 +119,13 @@ func setFloorIndicator(floor int) { // made private
 	C.elev_set_floor_indicator(C.int(floor))
 }
 
-func setButtonLamp(button elev_button_type_t, floor int, value int) { // made private
+func SetButtonLamp(button elev_button_type_t, floor int, value int) {
+	// These lights must only be turned on from main(), as they act as a confirmation that the button press was logged
 	C.elev_set_button_lamp(C.elev_button_type_t(button), C.int(floor), C.int(value))
 }
 
-func setStopLamp(value int) { // made private
+func SetStopLamp(value int) { 
+	// These lights must only be turned on from main(), as they act as a confirmation that the button press was logged
 	C.elev_set_stop_lamp(C.int(value))
 }
 
@@ -91,8 +134,6 @@ func setDoorOpenLamp(value int) { // made private
 }
 
 func GoToFloor(desiredFloor int) {
-    // fmt.Println("Actual floor" + string(getFloorSensor()))
-    // fmt.Println(desiredFloor)
     if desiredFloor == getFloorSensor() {
         return
     } else if desiredFloor > getFloorSensor(){
@@ -101,40 +142,29 @@ func GoToFloor(desiredFloor int) {
             setMotorDir(DIRN_DOWN)
     }
     for desiredFloor != getFloorSensor()  {
-         // fmt.Println(getFloorSensor())
+	// Lag timeout som returnerer en feilmelding om heisen ikke når frem
     }
+
 	setMotorDir(DIRN_STOP)
         return
 }
 
 
-func updateFloorLights() { // Run as go routine from Init()
-	// currentFloor := GetFloorSensor()
-	// if currentFloor
-	// setFloorIndicator(getFloor)
-}
 
 /*
-Public functions:
-GoToFloor(floor int)
-GetFloorSensor
-ButtonPushedOnFloor() chan
-
-
 buttonpress channel:
 
 const (
-floorButton3down type_t = iota
-floorButton2up
-floorButton2down
-floorButton1up
-floorButton1down
-floorButton0up
+Button3down type_t = iota
+Button2up
+Button2down
+Button1up
+Button1down
+Button0up
 elevatorButtonCommand3
 elevatorButtonCommand2
 elevatorButtonCommand1
 elevatorButtonCommand0
 elevatorButtonStop
 
-go routine som sjekker for knapper "hele tiden" og putter dem ut på en channel som et map
 */
