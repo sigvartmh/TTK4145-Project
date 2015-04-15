@@ -1,7 +1,6 @@
 package driver
 
 /*
-#cgo LDFLAGS: /home/pikachu/TTK4145/TTK4145-Project/simulator/driver/lib/simulation_elevator.a /home/pikachu/TTK4145/TTK4145-Project/simulator/driver/lib/libphobos2.a -lpthread -lcomedi -lm
 #cgo CFLAGS: -std=c99 -Ilib
 #include "io.h"
 #include "channels.h"
