@@ -10,22 +10,22 @@ func main() {
 	message2 := make(chan string)
 	//msg <- "Test channel"
 	go func() {
-		var str string = "Test"
+		var str string = "Starting Test"
 		message <- str
 	}()
-	fmt.Println(<-message)
-	driver.Init(message, message2)
-	go func() {
-		var str string = "Test"
-		message <- str
-	}()
+	//fmt.Println(<-message)
+    select{
+    case msg := <-message:
+        fmt.Println("Test message: ", msg)
+    }
+	go driver.Init(message, message2)
 
 	for {
 		select {
-		case msg := <-message:
+        case msg := <-message:
 			fmt.Println("Recived on channel:", msg)
 		case msg2 := <-message2:
-			fmt.Println("Recived on channel:", msg2)
+			fmt.Println("Recived on channel2:", msg2)
 		}
 	}
 }

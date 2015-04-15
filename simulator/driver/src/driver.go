@@ -8,7 +8,7 @@ package driver
 */
 import "C"
 import (
-	// f		 "time"
+	//"time"
 	"fmt"
 	"os"
 	"strconv"
@@ -34,7 +34,7 @@ const (
 )
 
 const (
-	ET_COMIDI ElevatorType = iota
+	ET_COMEDI ElevatorType = iota
 	ET_SIMULATOR
 )
 
@@ -43,26 +43,26 @@ func initElev(elevType ElevatorType) int {
 }
 
 func Init(internal chan string, external chan string) {
-	//success = init(1)
-	initElev(ET_SIMULATOR)
-	fmt.Println("Maxfloor= ", maxFloor)
-	//internal <- "Starting simulator"
-	//fmt.Println("message sent to main")
-	setMotorDir(DIR_DOWN)
-	go func() {
-		for {
-			floor = GetFloorSensor()
-			if floor == 0 {
-				setMotorDir(DIR_STOP)
-				internal <- "Arrived at floor 0"
-				return
-			}
-		}
-	}()
 
-	go floorIndicator(internal)
-	go internalButtonPress(internal)
-	go externalButtonPress(external)
+    initElev(ET_SIMULATOR)
+	fmt.Println("Maxfloor=", maxFloor)
+	//internal <- "Starting simulator"
+    fmt.Println("Passed string to channel")
+	setMotorDir(DIR_DOWN)
+    go func(msg chan string){
+        for(GetFloorSensor() != 0){
+            setMotorDir(DIR_DOWN)
+        }
+        setMotorDir(DIR_STOP)
+        msg <- "Motor dir stop"
+        return
+    }(internal)
+	floor = GetFloorSensor()
+	external <- "Arrived at floor 0"
+    fmt.Println("passed arrived at floor")
+    go floorIndicator(internal)
+    go initButtonListners(internal)
+
 }
 
 /*Initializes the elevator */
@@ -129,7 +129,6 @@ func externalButtonPress(msg chan string) {
 		}
 		i++
 		i = i % maxFloor
-		msg <- "Checked externalButtonPress"
 		//time.Sleep(25 * time.Millisecond)
 	}
 	//done <- true
@@ -143,10 +142,11 @@ func floorIndicator(msg chan string) {
 	for {
 		floor = GetFloorSensor()
 		if floor != -1 && floor != lastFloor {
-			SetFloorIndicator(floor)
+			SetFloorIndicator(floor+1)
 			msg <- "Floor indicator set too floor"
 			lastFloor = floor
-		}
+	}
+        //time.Sleep(150 *time.Millisecond)
 	}
 }
 
@@ -163,4 +163,21 @@ func internalButtonPress(msg chan string) {
 		msg <- "Checked externalButtonPress"
 		//time.Sleep(25 * time.Millisecond)
 	}
+}
+
+func initButtonListners(msg chan string){
+    for i := 0; i < maxFloor; i++ {
+        go checkButtonPress(msg, BUTTON_COMMAND, i)
+        if(i < maxFloor-1){ go checkButtonPress(msg, BUTTON_CALL_UP, i) }
+        if(i > 0){ go checkButtonPress(msg, BUTTON_CALL_DOWN, i) }
+    }
+}
+
+func checkButtonPress(msg chan string, buttonType elev_button_type_t, floorLevel int){
+    for {
+        if GetButtonSignal(buttonType, floorLevel) == 1 {
+            SetButtonLamp(buttonType, floorLevel, 1)
+            msg <- "Button Call signal recived"
+        }
+    }
 }
