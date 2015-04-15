@@ -1,7 +1,7 @@
 package driver
 
 /*
-#cgo LDFLAGS: /Users/haunter/Programming/TTK4145-Project/simulator/driver/lib/simulation_elevator.a /Users/haunter/Programming/TTK4145-Project/simulator/driver/lib/libphobos2.a -lpthread -lm
+#cgo LDFLAGS: /home/pikachu/TTK4145/TTK4145-Project/simulator/driver/lib/simulation_elevator.a /home/pikachu/TTK4145/TTK4145-Project/simulator/driver/lib/libphobos2.a -lpthread -lcomedi -lm
 #cgo CFLAGS: -std=c99 -Ilib
 #include "io.h"
 #include "channels.h"
@@ -9,13 +9,13 @@ package driver
 */
 import "C"
 import (
-// f		 "time"
-		 "os"
-		 "strconv"
-		 "fmt"
+	// f		 "time"
+	"fmt"
+	"os"
+	"strconv"
 )
 
-var maxFloor ,  _ = strconv.Atoi(os.Getenv("FLOORS"))
+var maxFloor, _ = strconv.Atoi(os.Getenv("FLOORS"))
 var floor int
 
 type elev_button_type_t int
@@ -36,28 +36,30 @@ const (
 
 const (
 	ET_COMIDI ElevatorType = iota
-	ET_SIMULATOR 
+	ET_SIMULATOR
 )
 
 func initElev(elevType ElevatorType) int {
 	return int(C.elev_init(C.ElevatorType(elevType)))
 }
 
-func Init(internal chan string, external chan string){
+func Init(internal chan string, external chan string) {
 	//success = init(1)
 	initElev(ET_SIMULATOR)
 	fmt.Println("Maxfloor= ", maxFloor)
 	//internal <- "Starting simulator"
 	//fmt.Println("message sent to main")
 	setMotorDir(DIR_DOWN)
-	go func(){for{
-		floor = GetFloorSensor()
-		if floor == 0 {
-			setMotorDir(DIR_STOP)
-			internal <- "Arrived at floor 0"
-			return
+	go func() {
+		for {
+			floor = GetFloorSensor()
+			if floor == 0 {
+				setMotorDir(DIR_STOP)
+				internal <- "Arrived at floor 0"
+				return
+			}
 		}
-	}}()
+	}()
 
 	go floorIndicator(internal)
 	go internalButtonPress(internal)
@@ -105,11 +107,9 @@ func SetDoorOpenLamp(value int) {
 	C.elev_set_door_open_lamp(C.int(value))
 }
 
-
-
 //func GoToFloor(value int){}
 
-func externalButtonPress(msg chan string){
+func externalButtonPress(msg chan string) {
 
 	var i int = 0
 
@@ -146,7 +146,7 @@ func floorIndicator(msg chan string) {
 		if floor != -1 && floor != lastFloor {
 			SetFloorIndicator(floor)
 			msg <- "Floor indicator set too floor"
-			lastFloor=floor
+			lastFloor = floor
 		}
 	}
 }
@@ -154,10 +154,10 @@ func floorIndicator(msg chan string) {
 func internalButtonPress(msg chan string) {
 	var i int = 0
 	for {
-		if GetButtonSignal(BUTTON_COMMAND, i) == 1{
+		if GetButtonSignal(BUTTON_COMMAND, i) == 1 {
 			SetButtonLamp(BUTTON_COMMAND, i, 1)
 			msg <- "Button Command Signal recived"
-			//time.Sleep(150* time.Millisecond)		
+			//time.Sleep(150* time.Millisecond)
 		}
 		i++
 		i = i % maxFloor
