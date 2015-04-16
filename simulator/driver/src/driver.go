@@ -38,10 +38,6 @@ const (
 	ET_SIMULATOR
 )
 
-func initElev(elevType ElevatorType) int {
-	return int(C.elev_init(C.ElevatorType(elevType)))
-}
-
 func Init(internal chan string, external chan string) {
 
     initElev(ET_SIMULATOR)
@@ -70,43 +66,28 @@ func Init(internal chan string, external chan string) {
 	return int(C.elev_init(C.ElevatorType(C.ElevatorType(type_t)))
 }*/
 
-func setMotorDir(dirn elev_motor_direction_t) {
-	C.elev_set_motor_direction(C.elev_motor_direction_t(dirn))
-}
+func GoToFloor(value int){
+	fmt.Println("Entered GoToFloor")
+	fmt.Println("Value:", value, " Floor:", floor)
+	for{
+		fmt.Println("Value:", value, " Floor:", floor)
+		fmt.Println("value > floor", value > floor)
+		switch{
+			case value > floor:
+				fmt.Println("Entered GoToFloorUP")
+				SetMotorDir(DIR_UP)
 
-func GetFloorSensor() int {
-	return int(C.elev_get_floor_sensor_signal())
-}
+			case floor < value: //TODO:Find out why it cannot enter here
+				fmt.Println("Entered GoToFloorDOWN")
+				SetMotorDir(DIR_DOWN)
 
-func GetButtonSignal(button elev_button_type_t, floor int) int {
-	return int(C.elev_get_button_signal(C.elev_button_type_t(button), C.int(floor)))
+			case floor == value:
+				fmt.Println("Entered GoToFloorSTOP")
+				SetMotorDir(DIR_STOP)
+		}
+		//time.Sleep(25 * time.Millisecond)
+	}
 }
-
-func GetStopSignal() int {
-	return int(C.elev_get_stop_signal())
-}
-
-func GetObstructionSignal() int {
-	return int(C.elev_get_stop_signal())
-}
-
-func SetFloorIndicator(floor int) {
-	C.elev_set_floor_indicator(C.int(floor))
-}
-
-func SetButtonLamp(button elev_button_type_t, floor int, value int) {
-	C.elev_set_button_lamp(C.elev_button_type_t(button), C.int(floor), C.int(value))
-}
-
-func SetStopLamp(value int) {
-	C.elev_set_stop_lamp(C.int(value))
-}
-
-func SetDoorOpenLamp(value int) {
-	C.elev_set_door_open_lamp(C.int(value))
-}
-
-//func GoToFloor(value int){}
 
 func externalButtonPress(msg chan string) {
 
@@ -180,4 +161,44 @@ func checkButtonPress(msg chan string, buttonType elev_button_type_t, floorLevel
             msg <- "Button Call signal recived"
         }
     }
+}
+
+func initElev(elevType ElevatorType) int {
+	return int(C.elev_init(C.ElevatorType(elevType)))
+}
+
+func setMotorDir(dirn elev_motor_direction_t) {
+	C.elev_set_motor_direction(C.elev_motor_direction_t(dirn))
+}
+
+func GetFloorSensor() int {
+	return int(C.elev_get_floor_sensor_signal())
+}
+
+func GetButtonSignal(button elev_button_type_t, floor int) int {
+	return int(C.elev_get_button_signal(C.elev_button_type_t(button), C.int(floor)))
+}
+
+func GetStopSignal() int {
+	return int(C.elev_get_stop_signal())
+}
+
+func GetObstructionSignal() int {
+	return int(C.elev_get_stop_signal())
+}
+
+func SetFloorIndicator(floor int) {
+	C.elev_set_floor_indicator(C.int(floor))
+}
+
+func SetButtonLamp(button elev_button_type_t, floor int, value int) {
+	C.elev_set_button_lamp(C.elev_button_type_t(button), C.int(floor), C.int(value))
+}
+
+func SetStopLamp(value int) {
+	C.elev_set_stop_lamp(C.int(value))
+}
+
+func SetDoorOpenLamp(value int) {
+	C.elev_set_door_open_lamp(C.int(value))
 }
