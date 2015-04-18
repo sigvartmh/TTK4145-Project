@@ -19,9 +19,7 @@ func TCPserver(externalOrders chan string) {
         if err != nil {
             fmt.Println("Error accepting: ", err.Error())
         }
-        
         go handleConnection(conn, externalOrders)
-    	
     } //Switch to for select loop
 }
 

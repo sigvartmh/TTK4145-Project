@@ -1,5 +1,5 @@
 FLOORS=4
-GOMAXPROCS=20
+GOMAXPROCS=2
 libPath=$PWD
 if [[ "$platform"  == "Linux" ]]; then
     CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
