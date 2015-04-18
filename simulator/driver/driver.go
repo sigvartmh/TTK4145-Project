@@ -27,21 +27,14 @@ const (
 
 var maxFloor, _ = strconv.Atoi(os.Getenv("FLOORS"))
 
-
 func Init(t ElevatorType, internal chan string, external chan string) {
 
     InitElev(t)
 	fmt.Println("Maxfloor=", maxFloor)
-	//internal <- "Starting simulator"
     fmt.Println("Passed string to channel")
 	SetMotorDir(DIR_DOWN)
 	floor := -1
     go func(msg chan string){
-        /*for(GetFloorSensor() != 0){
-            SetMotorDir(DIR_DOWN)
-        }
-        SetMotorDir(DIR_STOP)
-        msg <- "Motor dir stop"*/
         for{
         	floor = GetFloorSensor()
         	if floor == 0 {
@@ -51,18 +44,11 @@ func Init(t ElevatorType, internal chan string, external chan string) {
         	}
         }
     }(internal)
-	//floor := GetFloorSensor()
 	external <- "Arrived at floor 0"
     fmt.Println("passed arrived at floor")
     go floorIndicator(internal)
     go initButtonListners(internal)
-
 }
-
-/*Initializes the elevator */
-/*func initElev(type_t ElevatorType) int {
-	return int(C.elev_init(C.ElevatorType(C.ElevatorType(type_t)))
-}*/
 
 func GoToFloor(value int){
 	var floor int
@@ -90,33 +76,6 @@ func GoToFloor(value int){
 	}
 }
 
-func externalButtonPress(msg chan string) {
-
-	var i int = 0
-
-	for {
-		if i < maxFloor-1 {
-			if GetButtonSignal(BUTTON_CALL_UP, i) == 1 {
-				SetButtonLamp(BUTTON_CALL_UP, i, 1)
-				msg <- "Button Call up Signal recived"
-				//time.Sleep(150 * time.Millisecond)
-			}
-		}
-		if i > 0 {
-			if GetButtonSignal(BUTTON_CALL_DOWN, i) == 1 {
-				SetButtonLamp(BUTTON_CALL_DOWN, i, 1)
-				msg <- "Button Call downSignal recived"
-				//time.Sleep(150 * time.Millisecond)
-			}
-		}
-		i++
-		i = i % maxFloor
-		//time.Sleep(25 * time.Millisecond)
-	}
-	//done <- true
-
-}
-
 func floorIndicator(msg chan string) {
 
 	var lastFloor int = 0
@@ -130,21 +89,6 @@ func floorIndicator(msg chan string) {
 			lastFloor = floor
 		}
         time.Sleep(500 *time.Millisecond)
-	}
-}
-
-func internalButtonPress(msg chan string) {
-	var i int = 0
-	for {
-		if GetButtonSignal(BUTTON_COMMAND, i) == 1 {
-			SetButtonLamp(BUTTON_COMMAND, i, 1)
-			msg <- "Button Command Signal recived"
-			//time.Sleep(150* time.Millisecond)
-		}
-		i++
-		i = i % maxFloor
-		msg <- "Checked externalButtonPress"
-		//time.Sleep(25 * time.Millisecond)
 	}
 }
 
@@ -172,3 +116,15 @@ func checkButtonPress(msg chan string, buttonType Elev_button_type_t, floorLevel
         //time.Sleep(150* time.Millisecond)
     }
 }
+
+/*func externalLights(externalQue chan string){
+	for {
+		for _, lights := range externalQue{
+			if lights.up {
+				SetButtonLamp(BUTTON_CALL_UP, lights.floor, 1)
+			} else {
+				SetButtonLamp(BUTTON_CALL_DOWN, lights.floor, 1)
+			}
+		}
+	}
+}*/
