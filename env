@@ -1,11 +1,11 @@
 FLOORS=4
-GOMAXPROCS=2
+GOMAXPROCS=4
 libPath=$PWD
 if [[ "$platform"  == "Linux" ]]; then
     CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
-    CGO_LDFLAGS="$libPath/driver/lib/simulation_elevator.a $libPath/driver/lib/libphobos2.a -lpthread -lm"
+    CGO_LDFLAGS="$libPath/src/driver/lib/simulation_elevator.a $libPath/src/driver/lib/libphobos2.a -lpthread -lm"
 elif [[ "$platform"  == "Darwin" ]]; then
-    CGO_LDFLAGS="$libPath/driver/lib/osx/simulation_elevator.a $libPath/driver/lib/osx/libphobos2.a -lpthread -lm"
+    CGO_LDFLAGS="$libPath/src/driver/lib/osx/simulation_elevator.a $libPath/src/driver/lib/osx/libphobos2.a -lpthread -lm"
 fi
 platform=`uname`
 echo $platform
@@ -18,4 +18,5 @@ echo "Max amount of OS thread used: $GOMAXPROCS"
 export GOMAXPROCS
 export FLOORS
 export CGO_LDFLAGS
+#export GOPATH=$libPath
 

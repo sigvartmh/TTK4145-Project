@@ -3,7 +3,9 @@ package main
 import (
 	"./driver"
 	"./driver/src"
+	"bufio"
 	"fmt"
+	"os"
 	"runtime"
 	"time"
 )
@@ -14,6 +16,10 @@ const (
 )
 
 func main() {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter workstation public IP: ")
+	text, _ := reader.ReadString('\n')
+	fmt.Println(text)
 	message := make(chan string)
 	message2 := make(chan string)
 	//msg <- "Test channel"
@@ -22,22 +28,22 @@ func main() {
 		message <- str
 	}()
 	go func() {
-		for{
+		for {
 			fmt.Println("Cgo calls: ", runtime.NumCgoCall())
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
 	//fmt.Println(<-message)
-    select{
-    case msg := <-message:
-        fmt.Println("Test message: ", msg)
-    }
-    fmt.Println("Number of CPUs: ", runtime.NumCPU())
+	select {
+	case msg := <-message:
+		fmt.Println("Test message: ", msg)
+	}
+	fmt.Println("Number of CPUs: ", runtime.NumCPU())
 	go driver.Init(ET_SIMULATOR, message, message2)
 
 	for {
 		select {
-        case msg := <-message:
+		case msg := <-message:
 			fmt.Println("Recived on channel:", msg)
 			fmt.Println("Cgo calls: ", runtime.NumCgoCall())
 			fmt.Println("Go rutines: ", runtime.NumGoroutine())

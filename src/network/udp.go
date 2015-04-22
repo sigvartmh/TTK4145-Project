@@ -8,6 +8,10 @@ import "net"
 //TODO: every slave sends a package to broadcast channel to register their IP
 //TODO: Master sends a package to broadcast channel to notify the slaves
 
+type State struct{
+    master bool
+    ip 	   string
+}
 
 func udpSend(done chan bool, port , saddr *UDPAddr){
 	conn, err := net.DialUDP("udp", nil, saddr)
