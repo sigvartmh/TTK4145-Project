@@ -1,4 +1,4 @@
-package server
+package tcp
 
 import "net"
 import "fmt"
@@ -17,19 +17,20 @@ type QueItem struct {
 	var res QueItem
 	json.Unmarshal(data, &res)
 }*/
-
+//Change from decoder to buffer?
 func handleConnection(conn net.Conn, rec chan string) {
 	dec := json.NewDecoder(conn)
 	res := QueItem{}
-	dec.Decode(&res)
+	err := dec.Decode(&res)
+	if err == nil {
+		fmt.Printf("Received : %+v\n", res)
+		fmt.Println("recived from:", conn.RemoteAddr())
+		rec <- res.IP
+	}
 	fmt.Printf("Received : %+v\n", res)
 	fmt.Println("recived from:", conn.RemoteAddr())
 	rec <- res.IP
-
-	dec.Decode(&res)
-	fmt.Printf("Received : %+v\n", res)
-	fmt.Println("recived from:", conn.RemoteAddr())
-	rec <- res.IP
+	//fmt.Println("Decoded: ", err)
 }
 
 func Server(recived chan string) {

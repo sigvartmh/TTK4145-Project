@@ -1,15 +1,20 @@
 package main
 
-import "./server"
+import "./server/tcp"
+import "./server/udp"
 import "fmt"
 
 func main() {
-	res := make(chan string)
-	go server.Server(res)
+	t := make(chan string)
+	u := make(chan string)
+	go tcp.Server(t)
+	go udp.Server(u)
 	for {
 		select {
-		case str := <-res:
-			fmt.Println("Recived on channel1:", str)
+		case str := <-t:
+			fmt.Println("Recived on TCP:", str)
+		case str := <-u:
+			fmt.Println("Recived on UDP:", str)
 		}
 	}
 }

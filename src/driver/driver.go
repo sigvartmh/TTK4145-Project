@@ -31,6 +31,8 @@ type floorState struct {
 	level int
 }
 
+//TODO: Needs fixing for the button listners, need to be
+//multiplexed properly see http://talks.golang.org/2012/concurrency.slide#27
 var maxFloor, _ = strconv.Atoi(os.Getenv("FLOORS"))
 var floor floorState
 
