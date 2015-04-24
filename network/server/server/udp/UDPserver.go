@@ -19,7 +19,7 @@ type Que struct {
 const bufSize int = 1024
 
 func Server(recived chan string) {
-	baddr, err := net.ResolveUDPAddr("udp4", ":20055")
+	baddr, err := net.ResolveUDPAddr("udp", ":20055")
 	if err != nil {
 		//return err
 		fmt.Println("Error resolving udpAddr")
