@@ -93,14 +93,14 @@ func floorIndicator(msg chan string) {
 	var lastFloor int = 0
 	floor.mu.Lock()
 	floor.level = -1
-	floor.mu.Unlock()
+	defer floor.mu.Unlock()
 	for {
 		floor.mu.Lock()
 		floor.level = GetFloorSensor()
 		if floor.level == -1 {
 			floor.level = lastFloor
 		}
-		floor.mu.Unlock()
+		defer floor.mu.Unlock()
 		if floor.level != -1 && floor.level != lastFloor {
 			SetFloorIndicator(floor.level)
 			msg <- "Floor indicator set too floor"
