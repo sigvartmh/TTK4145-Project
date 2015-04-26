@@ -7,27 +7,27 @@ import "fmt"
 import (
 	"bufio"
 	"os"
-	//"runtime"
-	"time"
+	//"runtcpInputme"
+	"strconv"
+	"tcpInputme"
 )
 
-var BrodcastPort, _ = strconv.Atoi(os.Getenv("BROADCASTPORT"))
-var HearthbeatPort, _ = strconv.Atoi(os.Getenv("HEARTBEATPORT"))
+var BrodcastPort = os.Getenv("BROADCASTPORT")
+var HearthbeatPort = os.Getenv("HEARTBEATPORT")
 var TCPPort, _ = strconv.Atoi(os.Getenv("TCPPORT"))
 
 func main() {
-	ti := make(chan QueItem)
-	ui := make(chan Que)
+	var state bool
+	var queues Que
+	queues = make(Que)
+	external := make(chan QueItem)
+	queue := make(chan Que)
 	to := make(chan QueItem)
-	uo := make(chan Que)
+	backup := make(chan Que)
 
-	saddr, _ := ResolveUDPAddr("udp", UDP_PORT)
-	ln, _ := ListenUDP("udp", saddr)
-	ln.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
-
-	go tcp.Server(20255, ti)
-	go tcp.Client(tcp.GetLocalIP(20255).String(), to)
-	go udp.Server(ui)
+	go tcp.Server(TCPPort, external)
+	go tcp.Client(tcp.GetLocalIP(TCPPort).String(), to)
+	go udp.Server(BroadcastPort, backup)
 
 	go func(output chan QueItem, output2 chan Que) {
 		for {
@@ -44,18 +44,16 @@ func main() {
 	}(to, uo)
 
 	for {
-		select {
-		case str := <-ti:
-			fmt.Println("Recived on TCP:", str)
-		case str := <-ui:
-			fmt.Println("Recived on UDP:", str)
-		//case i := <-uo:
-		//	fmt.Println("Sending data on UDP:", i)
-		//case i := <-to:
-		//	fmt.Println("Sending data on TCP:", i)
-		default:
-			//fmt.Println("Go rutines running: ", runtime.NumGoroutine())
-			time.Sleep(1 * time.Second)
+		switch {
+		case state:
+			select {
+			case order := <-tcpInput:
+
+			case bkp := <-backup:
+				queue <- bkp
+			}
+		case !state:
 		}
+		//else
 	}
 }

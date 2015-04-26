@@ -70,14 +70,14 @@ func Client(server string, respond chan QueItem) {
 
 func Server(port int, recived chan QueItem) {
 	Connection.List = make(map[string]*net.TCPConn)
-	laddr := GetLocalIP(port)
+	laddr := FindServerIP(port)
 	ln, err := net.ListenTCP("tcp4", laddr)
 	if err != nil {
 		// handle error
-		fmt.Println("Unable to listen to self on:20013", err)
+		fmt.Println("Unable to listen to self on:", port, err)
 		panic("Error listening tcp")
 	}
-	fmt.Println("Server listening to port:20013")
+	fmt.Println("Server listening to port:", port)
 	for {
 		conn, err := ln.AcceptTCP()
 		if err != nil {
@@ -93,7 +93,7 @@ func Server(port int, recived chan QueItem) {
 
 }
 
-func GetLocalIP(port int) *net.TCPAddr {
+func FindServerIP(port int) *net.TCPAddr {
 	baddr, err := net.ResolveUDPAddr("udp4", "255.255.255.255:"+strconv.Itoa(20323))
 
 	if err != nil {

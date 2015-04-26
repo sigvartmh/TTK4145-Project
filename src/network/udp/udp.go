@@ -2,6 +2,9 @@ package udp
 
 import "net"
 import "fmt"
+import (
+	"time"
+)
 import "encoding/json"
 import "strconv"
 import . "../../queue"
@@ -9,8 +12,8 @@ import . "../../queue"
 const bufSize int = 1024
 
 //TODO: Add state channel which communicates if it's master or slave
-func Server(backup chan Que) {
-	baddr, err := net.ResolveUDPAddr("udp4", ":2055")
+func Server(port string, backup chan Que) {
+	baddr, err := net.ResolveUDPAddr("udp4", port)
 	if err != nil {
 		//return err
 		fmt.Println("Error resolving udpAddr")
@@ -47,8 +50,8 @@ func handleReception(conn *net.UDPConn, backup chan Que) {
 	backup <- item
 }
 
-func Client(que chan Que) {
-	bAddr := GetLocalIP()[:12] + "255"
+func Client(port int, queue chan Que) {
+	bAddr := GetLocalIP()[:12] + "255" + strconv.Itoa(port)
 	broadcast, err := net.ResolveUDPAddr("udp", bAddr)
 	conn, err := net.DialUDP("udp", nil, broadcast)
 	if err != nil {
@@ -57,12 +60,12 @@ func Client(que chan Que) {
 
 	for {
 		select {
-		case q := <-que:
+		case q := <-queue:
 			buf, err := json.Marshal(&q)
 			fmt.Println(buf)
 			l, err := conn.Write(buf)
 			if err != nil {
-				fmt.Println("Error wryting byte:", l, "to udp address:", broadcast)
+				fmt.Println("Error writing byte:", l, "to udp address:", broadcast)
 			}
 		}
 	}
@@ -98,13 +101,36 @@ func GetLocalIP() string {
 
 }
 
-/*
-func Heartbeat(master chan bool) {
-	for {
-		select {
-		case <-master == true:
-			//sendUDPpacket
-
+func Heartbeat(int port, master chan bool, slave chan bool) {
+	select {
+		b := make([]byte, bufSize)
+		bAddr := GetLocalIP()[:12] + "255" + strconv.Itoa(port)
+		broadcast, err := net.ResolveUDPAddr("udp", bAddr)
+		conn, err := net.DialUDP("udp", nil, broadcast)
+		if err != nil {
+			fmt.Println("Failed to dial baddr", err)
+			panic("Failed to dial baddr for laddr generation")
 		}
+	case <-master:
+		for {
+			select {
+			case <-time.After(time.Millisecond * 150):
+				buf := "Alive"
+				conn.Write(buf)
+			}
+		}
+		defer conn.Close()
+	case <-slave:
+		for {
+			ln.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
+			_, rAddr, err := ln.ReadFromUDP(b)
+			if err != nil {
+				slave <- false //Master send false if master have died
+				return
+			}
+		}
+		defer conn.Close()
+
 	}
-}*/
+
+}

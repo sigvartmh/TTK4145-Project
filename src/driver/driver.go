@@ -1,8 +1,9 @@
 package driver
 
 import (
-	. "./cwrapper/"
+	"../network/udp"
 	"../queue"
+	. "./cwrapper/"
 	"fmt"
 	"os"
 	"strconv"
@@ -37,30 +38,31 @@ type floorState struct {
 //multiplexed properly see http://talks.golang.org/2012/concurrency.slide#27
 var maxFloor, _ = strconv.Atoi(os.Getenv("FLOORS"))
 var floor floorState
-var que.InternalQue
 
-func Init(t ElevatorType, internal chan string, external chan string) {
+//var queue que.InternalQue
 
+func Init(t ElevatorType, internal, external chan QueItem, externalQue chan Que) {
+
+	done := make(chan bool)
 	InitElev(t)
 	fmt.Println("Maxfloor=", maxFloor)
-	fmt.Println("Passed string to channel")
 	SetMotorDir(DIR_DOWN)
 	floor := -1
-	go func(msg chan string) {
+	go func(done chan bool) {
 		for {
 			floor = GetFloorSensor()
 			if floor == 0 {
 				SetMotorDir(DIR_STOP)
-				msg <- "Motor dir stop"
+				done <- true
 				return
 			}
 		}
-	}(internal)
-
-	external <- "Arrived at floor 0"
+	}(done)
 	fmt.Println("passed arrived at floor")
 	go floorIndicator(internal)
+	<-done
 	go initButtonListners(internal)
+	go externalLights(externalQue)
 }
 
 //consider swapping time.sleep with
@@ -120,39 +122,52 @@ func floorIndicator(msg chan string) {
 	}
 }
 
-func initButtonListners(msg chan string) {
+func initButtonListners(internalOrder, externalOrder chan QueItem) {
 	for i := 0; i < maxFloor; i++ {
-		go checkButtonPress(msg, BUTTON_COMMAND, i)
+		go checkButtonPress(internalOrder, BUTTON_COMMAND, i)
 		fmt.Println("Initialized command button:", i)
 		if i < maxFloor-1 {
-			go checkButtonPress(msg, BUTTON_CALL_UP, i)
+			go checkButtonPress(externalOrder, BUTTON_CALL_UP, i)
 			fmt.Println("Initialized up button:", i)
 		}
 		if i > 0 {
-			go checkButtonPress(msg, BUTTON_CALL_DOWN, i)
+			go checkButtonPress(externalOrder, BUTTON_CALL_DOWN, i)
 			fmt.Println("Initialized down button:", i)
 		}
 	}
 }
 
-func checkButtonPress(msg chan string, buttonType Elev_button_type_t, floorLevel int) {
+func checkButtonPress(order chan QueItem, buttonType Elev_button_type_t, floorLevel int) {
 	for {
 		if GetButtonSignal(buttonType, floorLevel) == 1 {
-			SetButtonLamp(buttonType, floorLevel, 1)
-			msg <- "Button Call signal recived"
+			order <- QueItem{udp.GetLocalIP(), buttonType, floorLevel, false}
+			if buttonType == BUTTON_COMMAND {
+				SetButtonLamp(BUTTON_COMMAND, floorLevel, 1)
+			}
 		}
 		time.Sleep(150 * time.Millisecond)
 	}
 }
 
-/*func externalLights(externalQue chan string){
+func externalLights(q chan Que) {
+	var queue Que
 	for {
-		for _, lights := range externalQue{
-			if lights.up {
-				SetButtonLamp(BUTTON_CALL_UP, lights.floor, 1)
+		queue = <-q
+		for _, lights := range q.External {
+			if lights.Type == 0 {
+				SetButtonLamp(BUTTON_CALL_UP, lights.Floor, 1)
 			} else {
-				SetButtonLamp(BUTTON_CALL_DOWN, lights.floor, 1)
+				SetButtonLamp(BUTTON_CALL_DOWN, lights.Floor, 1)
+			}
+		}
+		time.Sleep(100 * time.Millisecond)
+		for i := 0; i < maxFloor; i++ {
+			if i < maxFloor-1 {
+				SetButtonLamp(BUTTON_CALL_UP, i, 0)
+			}
+			if i > 0 {
+				SetButtonLamp(BUTTON_CALL_DOWN, i, 0)
 			}
 		}
 	}
-}*/
+}

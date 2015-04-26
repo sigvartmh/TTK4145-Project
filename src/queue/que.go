@@ -9,16 +9,17 @@ type QueItem struct {
 	Complete bool
 }
 
-type Que struct {
+type Queue struct {
 	External []QueItem
+	Ordered  []QueItem
 }
 
-type InternalQue struct {
+/*type InternalQue struct {
 	Internal []QueItem
 	Ordered  []QueItem
 	Mu       sync.Mutex
-}
+}*/
 
-func sortQue(q *internalQue) {
+/*func sortQue(q *internalQue) {
 
-}
+}*/

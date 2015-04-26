@@ -2,7 +2,7 @@ FLOORS=4
 GOMAXPROCS=4
 BROADCASTPORT=":9925"
 HEARTBEATPORT=":9924"
-TCPPORT=":9923"
+TCPPORT="9923"
 libPath=$PWD
 if [[ "$platform"  == "Linux" ]]; then
     CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
