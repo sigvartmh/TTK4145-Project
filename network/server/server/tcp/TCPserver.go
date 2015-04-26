@@ -22,30 +22,44 @@ type connList struct {
 	Mu   sync.Mutex
 }
 
+var Connection connList
+
 const bufSize int = 1024
 
-//Change from decoder to buffer?
-func handleConnection(conn net.Conn, rec chan string) {
-	var item QueItem
-	buf := make([]byte, bufSize)
-	l, err := conn.Read(buf)
-	if err != nil || l < 0 {
-		fmt.Println("Error reading from conn: ", conn)
-		fmt.Println("Error reading: ", err)
-	}
+func handleConnection(conn net.Conn, rec chan string, res chan int) {
+	for {
+		select {
+		case floor := <-res:
 
-	jErr := json.Unmarshal(buf[:l], &item)
-	if jErr != nil {
-		fmt.Println("Error converting to JSON", jErr)
-	}
+		default:
+			var item QueItem
+			buf := make([]byte, bufSize)
+			l, err := conn.Read(buf)
+			if err != nil || l < 0 {
+				fmt.Println("Error reading from conn: ", conn)
+				fmt.Println("Error reading: ", err)
+				Connection.Mu.Lock()
+				conn.Close()
+				delete(Connection.List, conn.RemoteAddr().String())
+				defer Connection.Mu.Unlock()
+				return
+			} else {
+				err = json.Unmarshal(buf[:l], &item)
+				if err != nil {
+					fmt.Println("Error converting to JSON", err)
+				}
 
-	fmt.Printf("Received : %+v\n", item)
-	fmt.Println("recived from:", conn.RemoteAddr())
-	rec <- item.IP
-	//fmt.Println("Decoded: ", err)
+				fmt.Printf("Received : %+v\n", item)
+				fmt.Printf("Connection map: %+v\n", Connection.List)
+				fmt.Println("recived from:", conn.RemoteAddr())
+				rec <- item.IP
+			}
+		}
+	}
 }
 
-func Server(recived chan string) {
+func Server(recived chan string, respond chan int) {
+	Connection.List = make(map[string]*net.TCPConn)
 	laddr := GetLocalIP(20013)
 	ln, err := net.ListenTCP("tcp4", laddr)
 	if err != nil {
@@ -55,12 +69,16 @@ func Server(recived chan string) {
 	}
 	fmt.Println("Server listening to port:20013")
 	for {
-		conn, err := ln.Accept()
+		conn, err := ln.AcceptTCP()
 		if err != nil {
 			fmt.Println("No accept", err)
 			log.Println("Unable to accept connection", err)
 		}
-		go handleConnection(conn, recived)
+		raddr := conn.RemoteAddr()
+		Connection.Mu.Lock()
+		Connection.List[raddr.String()] = conn
+		Connection.Mu.Unlock()
+		go handleConnection(conn, recived, respond)
 	}
 
 }

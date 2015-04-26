@@ -15,14 +15,14 @@ type QueItem struct {
 type Que struct {
 	Internal []QueItem
 	External []QueItem
-	//Locale   []QueItem
+	Locale   []QueItem
 }
 
 const bufSize int = 1024
 
 //TODO: Add state channel which communicates if it's master or slave
 func Server(recived chan string) {
-	baddr, err := net.ResolveUDPAddr("udp4", ":20055")
+	baddr, err := net.ResolveUDPAddr("udp4", ":2055")
 	if err != nil {
 		//return err
 		fmt.Println("Error resolving udpAddr")
@@ -39,34 +39,29 @@ func Server(recived chan string) {
 }
 
 func handleReception(conn *net.UDPConn, res chan string) {
+	defer conn.Close()
+	var item QueItem
+	buf := make([]byte, bufSize)
+	l, rAddr, err := conn.ReadFromUDP(buf)
 
-	for {
-		defer conn.Close()
-		var item QueItem
-		buf := make([]byte, bufSize)
-		l, rAddr, err := conn.ReadFromUDP(buf)
-
-		if err != nil || l < 0 {
-			fmt.Println("Error reading from UDP", err)
-			return
-		}
-
-		jsonErr := json.Unmarshal(buf[:l], &item)
-		if jsonErr != nil {
-			fmt.Println("Error converting to JSON", err)
-		}
-
-		fmt.Printf("Received : %+v\n", item)
-		fmt.Println("recived from:", conn.RemoteAddr())
-		fmt.Println("recived from:", rAddr)
-		res <- item.IP
+	if err != nil || l < 0 {
+		fmt.Println("Error reading from UDP", err)
+		return
 	}
 
-	//}
+	jsonErr := json.Unmarshal(buf[:l], &item)
+	if jsonErr != nil {
+		fmt.Println("Error converting to JSON", err)
+	}
+
+	fmt.Printf("Received : %+v\n", item)
+	//fmt.Println("recived from:", conn.RemoteAddr())
+	fmt.Println("recived from:", rAddr)
+	res <- item.IP
 }
 
 func GetLocalIP() string {
-	baddr, err := net.ResolveUDPAddr("udp4", "255.255.255.255:"+strconv.Itoa(20323))
+	baddr, err := net.ResolveUDPAddr("udp4", "255.255.255.255:"+strconv.Itoa(30039))
 
 	if err != nil {
 		fmt.Println("Could not resolve baddr", err)

@@ -49,3 +49,7 @@ func Start() {
 	fmt.Println("done")
 
 }
+
+func emulateButtonPress() {
+
+}

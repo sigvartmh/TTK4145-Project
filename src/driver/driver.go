@@ -61,6 +61,8 @@ func Init(t ElevatorType, internal chan string, external chan string) {
 	go initButtonListners(internal)
 }
 
+//consider swapping time.sleep with
+//select{ case <-time.After(time.Second * 3)}
 func GoToFloor(value int) { //chan?
 	//var floor int
 	fmt.Println("Entered GoToFloor")
