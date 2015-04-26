@@ -2,6 +2,7 @@ package driver
 
 import (
 	. "./cwrapper/"
+	"../queue"
 	"fmt"
 	"os"
 	"strconv"
@@ -36,6 +37,7 @@ type floorState struct {
 //multiplexed properly see http://talks.golang.org/2012/concurrency.slide#27
 var maxFloor, _ = strconv.Atoi(os.Getenv("FLOORS"))
 var floor floorState
+var que.InternalQue
 
 func Init(t ElevatorType, internal chan string, external chan string) {
 

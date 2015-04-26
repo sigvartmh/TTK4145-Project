@@ -1,5 +1,8 @@
 FLOORS=4
 GOMAXPROCS=4
+BROADCASTPORT=":9925"
+HEARTBEATPORT=":9924"
+TCPPORT=":9923"
 libPath=$PWD
 if [[ "$platform"  == "Linux" ]]; then
     CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
@@ -15,8 +18,15 @@ fi
 echo "Linker flags: $CGO_LDFLAGS"
 echo "Max numbers of floors: $FLOORS"
 echo "Max amount of OS thread used: $GOMAXPROCS"
+echo "Broadcast port= $BROADCASTPORT"
+echo "Heartbeat port= $HEARTBEATPORT"
+echo "TCP port= $TCPPORT"
 export GOMAXPROCS
 export FLOORS
 export CGO_LDFLAGS
 #export GOPATH=$libPath
+export BROADCASTPORT
+export HEARTBEATPORT
+export TCPPORT
+
 

@@ -4,24 +4,12 @@ import "net"
 import "fmt"
 import "encoding/json"
 import "strconv"
-
-type QueItem struct {
-	IP       string
-	Floor    int
-	Type     int //Up = 0, Down = 1, Command = 2
-	Complete bool
-}
-
-type Que struct {
-	Internal []QueItem
-	External []QueItem
-	Locale   []QueItem
-}
+import . "../../queue"
 
 const bufSize int = 1024
 
 //TODO: Add state channel which communicates if it's master or slave
-func Server(recived chan string) {
+func Server(backup chan Que) {
 	baddr, err := net.ResolveUDPAddr("udp4", ":2055")
 	if err != nil {
 		//return err
@@ -35,12 +23,12 @@ func Server(recived chan string) {
 		panic("Error listetning too broadcast address")
 	}
 	fmt.Println(lnb.LocalAddr())
-	go handleReception(lnb, recived)
+	go handleReception(lnb, backup)
 }
 
-func handleReception(conn *net.UDPConn, res chan string) {
-	defer conn.Close()
-	var item QueItem
+func handleReception(conn *net.UDPConn, backup chan Que) {
+
+	var item Que
 	buf := make([]byte, bufSize)
 	l, rAddr, err := conn.ReadFromUDP(buf)
 
@@ -53,11 +41,32 @@ func handleReception(conn *net.UDPConn, res chan string) {
 	if jsonErr != nil {
 		fmt.Println("Error converting to JSON", err)
 	}
-
+	defer conn.Close()
 	fmt.Printf("Received : %+v\n", item)
-	//fmt.Println("recived from:", conn.RemoteAddr())
 	fmt.Println("recived from:", rAddr)
-	res <- item.IP
+	backup <- item
+}
+
+func Client(que chan Que) {
+	bAddr := GetLocalIP()[:12] + "255"
+	broadcast, err := net.ResolveUDPAddr("udp", bAddr)
+	conn, err := net.DialUDP("udp", nil, broadcast)
+	if err != nil {
+		fmt.Println("Error dialing server")
+	}
+
+	for {
+		select {
+		case q := <-que:
+			buf, err := json.Marshal(&q)
+			fmt.Println(buf)
+			l, err := conn.Write(buf)
+			if err != nil {
+				fmt.Println("Error wryting byte:", l, "to udp address:", broadcast)
+			}
+		}
+	}
+	defer conn.Close()
 }
 
 func GetLocalIP() string {
@@ -85,7 +94,7 @@ func GetLocalIP() string {
 	}
 
 	tempConn.Close()
-	return string(laddr.IP)
+	return laddr.IP.String()
 
 }
 

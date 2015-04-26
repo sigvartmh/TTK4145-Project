@@ -6,17 +6,8 @@ import "log"
 import "encoding/json"
 import "sync"
 import "strconv"
+import . "../../queue"
 
-type QueItem struct {
-	IP       string
-	Floor    int
-	Type     int //Up = 0, Down = 1, Command = 2
-	Complete bool
-}
-
-type ConnectionList struct {
-	IP []string
-}
 type connList struct {
 	List map[string]*net.TCPConn
 	Mu   sync.Mutex
@@ -26,41 +17,60 @@ var Connection connList
 
 const bufSize int = 1024
 
-func handleConnection(conn net.Conn, rec chan string, res chan int) {
+func handleConnection(conn net.Conn, res chan QueItem) {
 	for {
-		select {
-		case floor := <-res:
-
-		default:
-			var item QueItem
-			buf := make([]byte, bufSize)
-			l, err := conn.Read(buf)
-			if err != nil || l < 0 {
-				fmt.Println("Error reading from conn: ", conn)
-				fmt.Println("Error reading: ", err)
-				Connection.Mu.Lock()
-				conn.Close()
-				delete(Connection.List, conn.RemoteAddr().String())
-				defer Connection.Mu.Unlock()
-				return
-			} else {
-				err = json.Unmarshal(buf[:l], &item)
-				if err != nil {
-					fmt.Println("Error converting to JSON", err)
-				}
-
-				fmt.Printf("Received : %+v\n", item)
-				fmt.Printf("Connection map: %+v\n", Connection.List)
-				fmt.Println("recived from:", conn.RemoteAddr())
-				rec <- item.IP
+		var item QueItem
+		buf := make([]byte, bufSize)
+		l, err := conn.Read(buf)
+		if err != nil || l < 0 {
+			fmt.Println("Error reading from conn: ", conn)
+			fmt.Println("Error reading: ", err)
+			Connection.Mu.Lock()
+			conn.Close()
+			delete(Connection.List, conn.RemoteAddr().String())
+			defer Connection.Mu.Unlock()
+			return
+		} else {
+			err = json.Unmarshal(buf[:l], &item)
+			if err != nil {
+				fmt.Println("Error converting from JSON", err)
 			}
+
+			fmt.Printf("Received : %+v\n", item)
+			fmt.Printf("Connection map: %+v\n", Connection.List)
+			fmt.Println("recived from:", conn.RemoteAddr())
+			res <- item
 		}
 	}
 }
 
-func Server(recived chan string, respond chan int) {
+func Client(server string, respond chan QueItem) {
+	conn, err := net.Dial("tcp", server)
+	if err != nil {
+		fmt.Println("Error Connectio to Server", server, err)
+	}
+	for {
+		select {
+		case q := <-respond:
+			send := q
+			b, err := json.Marshal(&send)
+			if err != nil {
+				fmt.Println("Error converting to JSON", err)
+			}
+			fmt.Println("Json buff:", b)
+			l, err := conn.Write(b)
+			if err != nil || l < 0 {
+				panic("Unable to write to server")
+				return
+			}
+		}
+	}
+	defer conn.Close()
+}
+
+func Server(port int, recived chan QueItem) {
 	Connection.List = make(map[string]*net.TCPConn)
-	laddr := GetLocalIP(20013)
+	laddr := GetLocalIP(port)
 	ln, err := net.ListenTCP("tcp4", laddr)
 	if err != nil {
 		// handle error
@@ -78,7 +88,7 @@ func Server(recived chan string, respond chan int) {
 		Connection.Mu.Lock()
 		Connection.List[raddr.String()] = conn
 		Connection.Mu.Unlock()
-		go handleConnection(conn, recived, respond)
+		go handleConnection(conn, recived)
 	}
 
 }
