@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+    "time"
 )
 
 type QueItem struct {
@@ -30,10 +31,14 @@ func Start() {
 	fmt.Println("Json buff:", b)
 	conn.Write(b)
 	//conn.Write(b)
+    for{
+        conn.Write(b)
+        time.Sleep(3* time.Second)
+    }
 	conn.Close()
 
 	fmt.Println("Start udp")
-	ServerAddr, err := net.ResolveUDPAddr("udp", "129.241.186.255:20055")
+	ServerAddr, err := net.ResolveUDPAddr("udp", "129.241.186.255:2055")
 	connUDP, err := net.DialUDP("udp", nil, ServerAddr)
 	if err != nil {
 		fmt.Println("Error dialing server")
@@ -45,6 +50,7 @@ func Start() {
 	if err2 != nil {
 		fmt.Println("Wrote byte:", n, "to udp address")
 	}
+    
 	connUDP.Close()
 	fmt.Println("done")
 
