@@ -21,23 +21,16 @@ func Start() {
 		log.Fatal("Connection error", err)
 	}
 	//b := make([]byte, 1024)
+	//buf := make([]byte, 1024)
 
-	encoder := json.NewEncoder(conn)
 	//item := QueItem{"localhost", 2, 0, false}
 	item := QueItem{"PenisLars", 3, 0, true}
 	//item := 6
-	encoder.Encode(&item)
-	//conn.write(&item)
-	//b, err := json.Marshal(&item)
+	b, err := json.Marshal(&item)
+	fmt.Println("Json buff:", b)
+	conn.Write(b)
 	//conn.Write(b)
-	//conn.Close()
-	//conn, err = net.Dial("tcp", "129.241.186.229:20013")
-	item2 := QueItem{"localhost", 2, 0, false}
-	//b2, err := json.Marshal(&item2)
-	encoder.Encode(&item2)
-	encoder.Encode(3)
 	conn.Close()
-	fmt.Println("done")
 
 	fmt.Println("Start udp")
 	ServerAddr, err := net.ResolveUDPAddr("udp", "129.241.186.255:20055")
@@ -48,8 +41,8 @@ func Start() {
 	msg := QueItem{"UDP item", 3, 0, true}
 	buf, err := json.Marshal(&msg)
 	fmt.Println(buf)
-	n, err := connUDP.Write(buf)
-	if err != nil {
+	n, err2 := connUDP.Write(buf)
+	if err2 != nil {
 		fmt.Println("Wrote byte:", n, "to udp address")
 	}
 	connUDP.Close()

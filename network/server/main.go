@@ -1,14 +1,15 @@
 package main
 
 import "./server/tcp"
-import "./server/udp"
+
+//import "./server/udp"
 import "fmt"
 
 func main() {
 	t := make(chan string)
 	u := make(chan string)
 	go tcp.Server(t)
-	go udp.Server(u)
+	//go udp.Server(u)
 	for {
 		select {
 		case str := <-t:

@@ -1,7 +1,7 @@
 package driver
 
 import (
-	. "./src/"
+	. "./cwrapper/"
 	"fmt"
 	"os"
 	"strconv"
@@ -29,6 +29,7 @@ const (
 type floorState struct {
 	mu    sync.Mutex
 	level int
+	dir   int
 }
 
 //TODO: Needs fixing for the button listners, need to be
@@ -60,7 +61,7 @@ func Init(t ElevatorType, internal chan string, external chan string) {
 	go initButtonListners(internal)
 }
 
-func GoToFloor(value int) {
+func GoToFloor(value int) { //chan?
 	//var floor int
 	fmt.Println("Entered GoToFloor")
 	fmt.Println("Value:", value, " Floor:", floor)
@@ -81,8 +82,13 @@ func GoToFloor(value int) {
 			SetMotorDir(DIR_DOWN)
 
 		case floor.level == value:
+			defer floor.mu.Unlock()
 			fmt.Println("Entered GoToFloorSTOP")
 			SetMotorDir(DIR_STOP)
+			SetFloorIndicator(1)
+			time.Sleep(3 * time.Second)
+			SetFloorIndicator(0)
+			return
 		}
 		floor.mu.Unlock()
 	}
@@ -131,7 +137,7 @@ func checkButtonPress(msg chan string, buttonType Elev_button_type_t, floorLevel
 			SetButtonLamp(buttonType, floorLevel, 1)
 			msg <- "Button Call signal recived"
 		}
-		//time.Sleep(150* time.Millisecond)
+		time.Sleep(150 * time.Millisecond)
 	}
 }
 
