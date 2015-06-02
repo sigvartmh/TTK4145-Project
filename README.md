@@ -13,7 +13,12 @@ Current plans:
 
 Langauge: Go programming language
 
-Communication protocol: UDP/TCP ? Fixed/null terminated
+Communication protocol: UDP/TCP ? Fixed/null terminated(JSON/no termination to be set manually)
+
+Synchronization methods, synchronized channels/ message passing
+
+Fail safe:
+
 
 
 ##Work flow
@@ -23,5 +28,4 @@ Communication protocol: UDP/TCP ? Fixed/null terminated
     *  When solving issues in the issue tracker remember to document your commit and maybe update the wiki page for the feature.
   * When a feature is complete create a pull request to the develop/master branch
   * 
-
 

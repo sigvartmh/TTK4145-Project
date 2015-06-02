@@ -1,0 +1,32 @@
+FLOORS=4
+GOMAXPROCS=4
+BROADCASTPORT=":9925"
+HEARTBEATPORT=":9924"
+TCPPORT="9923"
+libPath=$PWD
+if [[ "$platform"  == "Linux" ]]; then
+    CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
+    CGO_LDFLAGS="$libPath/src/driver/lib/simulation_elevator.a $libPath/src/driver/lib/libphobos2.a -lpthread -lm"
+elif [[ "$platform"  == "Darwin" ]]; then
+    CGO_LDFLAGS="$libPath/src/driver/lib/osx/simulation_elevator.a $libPath/src/driver/lib/osx/libphobos2.a -lpthread -lm"
+fi
+platform=`uname`
+echo $platform
+if [[ "$platform"  == "Linux" ]]; then
+    CGO_LDFLAGS="$CGO_LDFLAGS -lcomedi"
+fi
+echo "Linker flags: $CGO_LDFLAGS"
+echo "Max numbers of floors: $FLOORS"
+echo "Max amount of OS thread used: $GOMAXPROCS"
+echo "Broadcast port= $BROADCASTPORT"
+echo "Heartbeat port= $HEARTBEATPORT"
+echo "TCP port= $TCPPORT"
+export GOMAXPROCS
+export FLOORS
+export CGO_LDFLAGS
+#export GOPATH=$libPath
+export BROADCASTPORT
+export HEARTBEATPORT
+export TCPPORT
+
+
