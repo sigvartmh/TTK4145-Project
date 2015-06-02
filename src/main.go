@@ -1,11 +1,12 @@
 package main
 
 import (
+	. "../queue"
 	"./driver"
 	"./driver/src"
-	"bufio"
+	"./network/tcp"
+	"./network/udp"
 	"fmt"
-	"os"
 	"runtime"
 	"time"
 )
@@ -15,40 +16,64 @@ const (
 	ET_SIMULATOR
 )
 
+var BrodcastPort = os.Getenv("BROADCASTPORT")
+var HearthbeatPort = os.Getenv("HEARTBEATPORT")
+var TCPPort, _ = strconv.Atoi(os.Getenv("TCPPORT"))
+
 func main() {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter workstation public IP: ")
-	text, _ := reader.ReadString('\n')
-	fmt.Println(text)
-	message := make(chan string)
-	message2 := make(chan string)
-	//msg <- "Test channel"
-	go func() {
-		var str string = "Starting Test"
-		message <- str
-	}()
-	go func() {
-		for {
-			fmt.Println("Cgo calls: ", runtime.NumCgoCall())
-			time.Sleep(500 * time.Millisecond)
-		}
-	}()
-	//fmt.Println(<-message)
-	select {
-	case msg := <-message:
-		fmt.Println("Test message: ", msg)
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	var state bool
+	var queues Que
+	b := make([]byte, 1024)
+	queues = make(Que)
+	external := make(chan QueItem)
+	queue := make(chan Que)
+	orders := make(chan QueItem)
+	sendTCP := make(chan QueItem)
+	reciveTCP := make(chan QueItem)
+	backup := make(chan Que)
+	master := make(chan bool)
+	nomaster := make(chan bool)
+	newmaster := make(chan string)
+
+	_, _, err := ln.ReadFromUDP(b)
+	saddr, _ := ResolveUDPAddr("udp", HearthbeatPort)
+	ln, _ := ListenUDP("udp", saddr)
+	ln.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
+	_, rAddr, err := ln.ReadFromUDP(b)
+	if err != nil {
+		state = true
 	}
-	fmt.Println("Number of CPUs: ", runtime.NumCPU())
-	go driver.Init(ET_SIMULATOR, message, message2)
+	ln.Close()
+
+	if state {
+		go tcp.Server(TCPPort, reciveTCP)
+		go tcp.Client(tcp.GetLocalIP(TCPPort).String(), sendTCP)
+		go udp.Heartbeat(HearthbeatPort, master)
+	} else {
+		go tcp.Client(rAddr, to)
+	}
+	go udp.Server(BroadcastPort, backup)
+	go driver.Init(ET_COMEDI, orders, external, queue)
 
 	for {
 		select {
-		case msg := <-message:
-			fmt.Println("Recived on channel:", msg)
-			fmt.Println("Cgo calls: ", runtime.NumCgoCall())
-			fmt.Println("Go rutines: ", runtime.NumGoroutine())
-		case msg2 := <-message2:
-			fmt.Println("Recived on channel2:", msg2)
+		case order := <-external:
+			sendTCP <- order
+		case order := <-reciveTCP:
+			queue <- order
+		case bkp := <-backup:
+			queue <- bkp
+		case <-nomaster:
+			alive := checkLowestIP(queue)
+			if alive.state {
+				newmaster <- alive.IP
+			}
+		default:
+			if state {
+				master <- state
+			}
 		}
+		//else
 	}
 }

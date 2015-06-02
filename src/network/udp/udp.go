@@ -120,16 +120,6 @@ func Heartbeat(int port, master chan bool, slave chan bool) {
 			}
 		}
 		defer conn.Close()
-	case <-slave:
-		for {
-			ln.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
-			_, rAddr, err := ln.ReadFromUDP(b)
-			if err != nil {
-				slave <- false //Master send false if master have died
-				return
-			}
-		}
-		defer conn.Close()
 
 	}
 
